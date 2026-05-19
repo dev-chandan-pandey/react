@@ -1043,7 +1043,7 @@ Just tell me 👍
 
 
 
-`
+
 import React, { useMemo, useState } from "react";
 
 const ITEMS_PER_PAGE = 5;
@@ -1070,7 +1070,7 @@ export default function TodoApp() {
   const [sortBy, setSortBy] = useState("latest");
   const [page, setPage] = useState(1);
 
-  // ADD TODO
+
   const addTodo = () => {
     if (!input.trim()) return;
 
@@ -1085,12 +1085,12 @@ export default function TodoApp() {
     setInput("");
   };
 
-  // DELETE TODO
+  
   const deleteTodo = (id) => {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
-  // TOGGLE TODO
+  
   const toggleTodo = (id) => {
     setTodos((prev) =>
       prev.map((todo) =>
@@ -1101,16 +1101,16 @@ export default function TodoApp() {
     );
   };
 
-  // FILTER + SEARCH + SORT
+ 
   const processedTodos = useMemo(() => {
     let filtered = [...todos];
 
-    // SEARCH
+    
     filtered = filtered.filter((todo) =>
       todo.text.toLowerCase().includes(search.toLowerCase())
     );
 
-    // FILTER
+   
     if (filter === "completed") {
       filtered = filtered.filter((todo) => todo.completed);
     }
@@ -1119,7 +1119,7 @@ export default function TodoApp() {
       filtered = filtered.filter((todo) => !todo.completed);
     }
 
-    // SORT
+    
     if (sortBy === "latest") {
       filtered.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -1139,7 +1139,7 @@ export default function TodoApp() {
     return filtered;
   }, [todos, search, filter, sortBy]);
 
-  // PAGINATION
+ 
   const totalPages = Math.ceil(
     processedTodos.length / ITEMS_PER_PAGE
   );
@@ -1309,4 +1309,3 @@ export default function TodoApp() {
     </div>
   );
 }
-`
