@@ -1043,4 +1043,270 @@ Just tell me 👍
 
 
 
+`
+import React, { useMemo, useState } from "react";
 
+const ITEMS_PER_PAGE = 5;
+
+export default function TodoApp() {
+  const [todos, setTodos] = useState([
+    {
+      id: 1,
+      text: "Learn React",
+      completed: false,
+      createdAt: new Date(),
+    },
+    {
+      id: 2,
+      text: "Build Todo App",
+      completed: true,
+      createdAt: new Date(),
+    },
+  ]);
+
+  const [input, setInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("latest");
+  const [page, setPage] = useState(1);
+
+  // ADD TODO
+  const addTodo = () => {
+    if (!input.trim()) return;
+
+    const newTodo = {
+      id: Date.now(),
+      text: input,
+      completed: false,
+      createdAt: new Date(),
+    };
+
+    setTodos((prev) => [newTodo, ...prev]);
+    setInput("");
+  };
+
+  // DELETE TODO
+  const deleteTodo = (id) => {
+    setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
+  // TOGGLE TODO
+  const toggleTodo = (id) => {
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id
+          ? { ...todo, completed: !todo.completed }
+          : todo
+      )
+    );
+  };
+
+  // FILTER + SEARCH + SORT
+  const processedTodos = useMemo(() => {
+    let filtered = [...todos];
+
+    // SEARCH
+    filtered = filtered.filter((todo) =>
+      todo.text.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // FILTER
+    if (filter === "completed") {
+      filtered = filtered.filter((todo) => todo.completed);
+    }
+
+    if (filter === "pending") {
+      filtered = filtered.filter((todo) => !todo.completed);
+    }
+
+    // SORT
+    if (sortBy === "latest") {
+      filtered.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+    }
+
+    if (sortBy === "oldest") {
+      filtered.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+    }
+
+    if (sortBy === "alphabetical") {
+      filtered.sort((a, b) => a.text.localeCompare(b.text));
+    }
+
+    return filtered;
+  }, [todos, search, filter, sortBy]);
+
+  // PAGINATION
+  const totalPages = Math.ceil(
+    processedTodos.length / ITEMS_PER_PAGE
+  );
+
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const paginatedTodos = processedTodos.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
+
+  return (
+    <div
+      style={{
+        maxWidth: "700px",
+        margin: "40px auto",
+        fontFamily: "Arial",
+      }}
+    >
+      <h1>Todo App</h1>
+
+      {/* ADD TODO */}
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Enter todo"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          style={{
+            flex: 1,
+            padding: "10px",
+          }}
+        />
+
+        <button onClick={addTodo}>
+          Add
+        </button>
+      </div>
+
+      {/* SEARCH */}
+      <input
+        type="text"
+        placeholder="Search todos..."
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginBottom: "20px",
+        }}
+      />
+
+      {/* FILTER + SORT */}
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        <select
+          value={filter}
+          onChange={(e) => {
+            setFilter(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="all">All</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+        </select>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="latest">Latest</option>
+          <option value="oldest">Oldest</option>
+          <option value="alphabetical">
+            Alphabetical
+          </option>
+        </select>
+      </div>
+
+      {/* TODO LIST */}
+      <div>
+        {paginatedTodos.length === 0 ? (
+          <p>No todos found</p>
+        ) : (
+          paginatedTodos.map((todo) => (
+            <div
+              key={todo.id}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px",
+                border: "1px solid #ccc",
+                marginBottom: "10px",
+                borderRadius: "5px",
+              }}
+            >
+              <div>
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleTodo(todo.id)}
+                />
+
+                <span
+                  style={{
+                    marginLeft: "10px",
+                    textDecoration: todo.completed
+                      ? "line-through"
+                      : "none",
+                  }}
+                >
+                  {todo.text}
+                </span>
+              </div>
+
+              <button
+                onClick={() => deleteTodo(todo.id)}
+              >
+                Delete
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* PAGINATION */}
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          justifyContent: "center",
+          marginTop: "20px",
+        }}
+      >
+        <button
+          disabled={page === 1}
+          onClick={() => setPage((prev) => prev - 1)}
+        >
+          Prev
+        </button>
+
+        <span>
+          Page {page} of {totalPages || 1}
+        </span>
+
+        <button
+          disabled={page === totalPages || totalPages === 0}
+          onClick={() => setPage((prev) => prev + 1)}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+`
